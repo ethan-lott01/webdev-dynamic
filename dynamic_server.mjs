@@ -11,9 +11,129 @@ const port = 8000;
 const root = path.join(__dirname, 'public');
 const template = path.join(__dirname, 'templates');
 
+const db = new sqlite3.Database(path.join(__dirname, 'energy.sqlite3'), sqlite3.OPEN_READONLY, (err) => {
+    if (err) {
+        console.log(err)
+    } else {
+        console.log("Connected to database")
+    }
+})
+
+const COLUMNS = ["AVG(biomass)",
+    "AVG(brown_coal_lignite)",
+    "AVG(coal_derived_gas)",
+    "AVG(gas)",
+    "AVG(hard_coal)",
+    "AVG(oil)",
+    "AVG(oil_shale)",
+    "AVG(peat)",
+    "AVG(geothermal)",
+    "AVG(hydro_pumped_storage_consumption)",
+    "AVG(hydro_run_of_river_and_poundage)",
+    "AVG(hydro_water_reservoir)",
+    "AVG(marine)",
+    "AVG(nuclear)",
+    "AVG(other)",
+    "AVG(other_renewable)",
+    "AVG(solar)",
+    "AVG(waste)",
+    "AVG(wind_offshore)",
+    "AVG(wind_onshore)",
+    "AVG(price_actual)"]
+
+function dbSelect(query, params) {
+    let p = new Promise((resolve, reject) => {
+        db.all(query, params, (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                console.log(rows)
+                resolve(rows);
+            }
+        })
+    })
+}
+
 let app = express();
 app.use(express.static(root));
+
+app.get('/test/', (req, res) => {
+   
+    const query = "SELECT * FROM energy;"
+
+    let result = dbSelect(query, [])
+
+    console.log(result)
+})
+
+//price format is MIN_MAX
+app.get('/prices/:price', (req, res) => {
+    const price = req.params.price;
+    const prices = price.split("_")
+    const minRange = parseInt(prices[0])
+    const maxRange = parseInt(prices[1])
+
+    const URL_PARAMS = ['0_10', '10_20', '20_30', '30_40', '40_50', '50_60', '60_70', '70_80', '80_90', '90_100', '100_110', '110_120']
+
+    const COLUMN_NAMES = ["Biomass", "Brown coal/Lignite", "Coal Derived Gas", "Gas", "Hard Coal", "Oil", "Oil Shale", "Peat", 
+    "Geothermal", "Hydro Pumped Storage Consumption", "Hydro Run of River and Poundage", "Hydro Water Resevoir", "Marine", 
+    "Nuclear, Other, Other_Renewable, Solar, Waste, Wind Offsh0re, Wind Onshore, Actual Price"]
+
+    const query = `SELECT ${COLUMNS} FROM energy WHERE price_actual > ? AND price_actual < ?;`
+
+    let result = dbSelect(query, [prices[0], prices[1]])
+})
+
+app.get('/fuels/:fuel', (req, res) => {
+    const fuel = req.params.fuel.toLowerCase();
+
+    const fuelMap = new Map();
+    fuelMap.set('coal', ["AVG(brown_coal_lignite)", "AVG(coal_derived_gas)", "AVG(hard_coal)"])
+    fuelMap.set('oil_gas', ["AVG(gas)", "AVG(oil)", "AVG(oil_shale)"])
+    fuelMap.set('wind', ["AVG(wind_offshore)", "AVG(wind_onshore)"])
+    fuelMap.set('hydro', ["AVG(hydro_pumped_storage_consumption)", "AVG(hydro_run_of_river_and_poundage)", "AVG(hydro_water_reservoir)"])
+    fuelMap.set('other_renewable', ["AVG(solar)", "AVG(nuclear)", "AVG(other_renewable)"])
+    fuelMap.set('other_fossil', ["AVG(biomass)", "AVG(waste)", "AVG(peat)"])
+
+    const COLUMN_NAMES = new Map();
+    COLUMN_NAMES.set('coal', ["Brown Coal Lignite", "Coal Derived Gas", "Hard Coal"])
+    COLUMN_NAMES.set('oil_gas', ["Gas", "Oil", "Oil Shale"])
+    COLUMN_NAMES.set('wind', ["Wind Offshore", "Wind Onshore"])
+    COLUMN_NAMES.set('hydro', ["Hydro Pumped Storage Consumption", "Hydro Run Of River and Poundage", "Hydro Water Reservoir"])
+    COLUMN_NAMES.set('other_renewable', ["Solar", "Nuclear", "Other Renewable"])
+    COLUMN_NAMES.set('other_fossil', ["Bbiomass", "Waste", "Peat"])
+
+    const URL_PARAMS = ['coal', 'oil_gas', 'wind', 'hydro', 'other_renewable', 'other fossil']
+
+    const query = `SELECT ${fuelMap.get(fuel)} FROM energy;`
+
+    console.log(fuel, fuelMap.get(fuel))
+
+
+    let result = dbSelect(query, [])
+})
+
+app.get('/time/:hr', (req, res) => {
+    const hour = req.params.hr;
+
+    const HOUR_PARAMS = ["0:00:00", "1:00:00", "2:00:00", "3:00:00", 
+    "4:00:00", "5:00:00", "6:00:00", "7:00:00", "8:00:00", "9:00:00", 
+    "10:00:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00", "15:00:00", 
+    "16:00:00", "17:00:00", "18:00:00", "19:00:00", "20:00:00", "21:00:00", 
+    "22:00:00", "23:00:00"]
+
+    const URL_PARAMS = ["Biomass", "Brown coal/Lignite", "Coal Derived Gas", "Gas", "Hard Coal", "Oil", "Oil Shale", "Peat", 
+    "Geothermal", "Hydro Pumped Storage Consumption", "Hydro Run of River and Poundage", "Hydro Water Resevoir", "Marine", 
+    "Nuclear, Other, Other_Renewable, Solar, Waste, Wind Offsh0re, Wind Onshore, Actual Price"]
+
+    const query = `SELECT ${COLUMNS} FROM energy WHERE Time = ?;`
+
+    let result = dbSelect(query, hour)
+
+})
+
 
 app.listen(port, () => {
     console.log('Now listening on port ' + port);
 });
+
