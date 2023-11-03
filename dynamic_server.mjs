@@ -184,11 +184,14 @@ let fillTable = function(energyData, columns, title, res, paramsList, curParam) 
         }
 
         let tableHeader = "<tr> \n";
+        //let xplot = "";
 
         columns.forEach((column) => {
             tableHeader += `<th>${column}</th> \n`
+            //xplot += column + ", "
         })
         tableHeader += "</tr> \n"
+        //xplot = xplot.replace(/,\s*$/, "");
 
 
         let tableBody = "";
@@ -202,12 +205,12 @@ let fillTable = function(energyData, columns, title, res, paramsList, curParam) 
 
         })
         let table = `<table>${tableHeader} ${tableBody}</table>`
-
         let response = data.replace('$$DATA_TITLE$$', title)
         response = response.replace('$$DATA_TABLE$$', table)
 
-        let plotlyPlot = `Plotly.plot('Chart', [{y: [${Object.values(energyData[0])}], type: 'bar'}]);`
+        let plotlyPlot = `Plotly.plot('Chart', [{y: [${Object.values(energyData[0])}], x: [${columns}], type: 'bar'}]);`
         let plotylScript = `<div id="Chart"></div> <script>${plotlyPlot}</script>`
+
         response = response.replace("$$DATA_IMG$$", plotylScript)
 
 
