@@ -103,7 +103,7 @@ app.get('/prices/:price', (req, res) => {
     const price = req.params.price;
     const prices = price.split("_")
 
-    const URL_PARAMS = ['10_20', '20_30', '30_40', '40_50', '50_60', '60_70', '70_80', '80_90', '90_100', '100_110', '110_120']
+    const URL_PARAMS = ['10_20', '20_30', '30_40', '40_50', '50_60', '60_70', '70_80', '80_90', '100_110', '110_120']
 
     const COLUMN_NAMES = ["Biomass", "Brown coal/Lignite", "Coal Derived Gas", "Gas", "Hard Coal", "Oil", "Oil Shale", "Peat", 
     "Geothermal", "Hydro Pumped Storage Consumption", "Hydro Run of River and Poundage", "Hydro Water Resevoir", "Marine", 
