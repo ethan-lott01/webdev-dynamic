@@ -19,7 +19,7 @@ th, td {
     border: 0.15rem solid black;
     border-radius: 0.5rem;
 }
-.scrollable{
+table{
     height: 90%;
     overflow-y: scroll;
 }
