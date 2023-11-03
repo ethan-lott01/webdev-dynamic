@@ -68,8 +68,15 @@ function dbSelect(query, params) {
     let p = new Promise((resolve, reject) => {
         db.all(query, params, (err, rows) => {
             if (err) {
+                console.log("Error")
+
                 reject(err);
-            } else {
+            } 
+            if (rows.length == 0) {
+                console.log("No rows")
+                reject("Could not find data")
+            }
+            else {
                 resolve(rows);
             }
         })
@@ -77,18 +84,6 @@ function dbSelect(query, params) {
     return p
 }
 
-function openTemplate() {
-    let p = new Promise((resolve, reject) => {
-        fs.readFile(path.join(template, 'temp.html'), 'utf-8', (err,data) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(data);
-            }
-        })
-    })
-    return p
-}
 
 let app = express();
 app.use(express.static(root));
@@ -116,7 +111,9 @@ app.get('/prices/:price', (req, res) => {
     const query = `SELECT ${COLUMNS_NONAVG} FROM energy WHERE price_actual > ? AND price_actual < ?;`;
     let p1 = dbSelect(query, [prices[0], prices[1]]);
     p1.then((data, err) => {
-        fillTable(data, COLUMN_NAMES, "Time", res)
+        fillTable(data, COLUMN_NAMES, "Price", res)
+    }).catch((err) => {
+        displayError("time", hour, res)
     })
 });
 
@@ -147,6 +144,11 @@ app.get('/fuels/:fuel', (req, res) => {
     let p1 = dbSelect(query, []);
     p1.then((data, err) => {
         fillTable(data, COLUMN_NAMES.get(fuel), "Fuels", res)
+<<<<<<< HEAD
+=======
+    }).catch((err) => {
+        displayError("time", hour, res)
+>>>>>>> 1d9c644 (added error message)
     })
 });
 
@@ -169,9 +171,12 @@ app.get('/time/:hr', (req, res) => {
     let p1 = dbSelect(query, hour);
 
     p1.then((data, err) => {
+
         fillTable(data, COLUMN_NAMES, "Time", res)
     }
-    )
+    ).catch((err) => {
+        displayError("time", hour, res)
+    })
 })
 
 let fillTable = function(energyData, columns, title, res) {
@@ -221,6 +226,13 @@ let fillTable = function(energyData, columns, title, res) {
     })
 }
 
+
+let displayError = function(page, params, res) {
+    let header = "<h3>404 Error</h3>"
+    let body = `<p>Could not find data with parameters ${params} on ${page} on</p>`
+    let message = header + body
+    res.status(404).type("html").send(message)
+}
 
 app.listen(port, () => {
     console.log('Now listening on port ' + port);
