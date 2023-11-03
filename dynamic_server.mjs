@@ -41,6 +41,28 @@ const COLUMNS = ["AVG(biomass)",
     "AVG(wind_onshore)",
     "AVG(price_actual)"]
 
+    const COLUMNS_NONAVG = ["biomass",
+    "brown_coal_lignite",
+    "coal_derived_gas",
+    "gas",
+    "hard_coal",
+    "oil",
+    "oil_shale",
+    "peat",
+    "geothermal",
+    "hydro_pumped_storage_consumption",
+    "hydro_run_of_river_and_poundage",
+    "hydro_water_reservoir",
+    "marine",
+    "nuclear",
+    "other",
+    "other_renewable",
+    "solar",
+    "waste",
+    "wind_offshore",
+    "wind_onshore",
+    "price_actual"]
+
 function dbSelect(query, params) {
     let p = new Promise((resolve, reject) => {
         db.all(query, params, (err, rows) => {
@@ -172,7 +194,7 @@ app.get('/time/:hr', (req, res) => {
     "Geothermal", "Hydro Pumped Storage Consumption", "Hydro Run of River and Poundage", "Hydro Water Resevoir", "Marine", 
     "Nuclear", "Other", "Other_Renewable", "Solar", "Waste", "Wind Offshore", "Wind Onshore", "Actual Price"]
 
-    const query = `SELECT ${COLUMNS} FROM energy WHERE Time = ?;`
+    const query = `SELECT ${COLUMNS_NONAVG} FROM energy WHERE Time = ?;`
 
     //let result = dbSelect(query, hour)
 
@@ -189,18 +211,7 @@ app.get('/time/:hr', (req, res) => {
 
     p1.then((data, err) => {
 
-        let p = new Promise((resolve, reject) => {
-            let response = fillTable(data, URL_PARAMS, "Time")
-            resolve(response)
-        })
-        p.then((response) => {
-            console.log(response)
-            res.status(200).type('html').send("response")
-
-        })
-
-
-
+        fillTable(data, URL_PARAMS, "Time", res)
 
     }
     )
@@ -228,7 +239,7 @@ app.get('/time/:hr', (req, res) => {
     // });
 })
 
-let fillTable = function(energyData, columns, title) {
+let fillTable = function(energyData, columns, title, res) {
     fs.readFile(path.join(template, 'temp.html'), 'utf-8', (err,data) => {
         if (err) {
             throw err
@@ -256,8 +267,7 @@ let fillTable = function(energyData, columns, title) {
 
         let response = data.replace('$$DATA_TITLE$$', title)
         response = response.replace('$$DATA_TABLE$$', table)
-        console.log("fill table:\n" + response)
-        return response
+        res.status(200).type("html").send(response)    
     })
 }
 
