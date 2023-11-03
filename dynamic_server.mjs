@@ -210,7 +210,9 @@ let fillTable = function(energyData, columns, title, res, paramsList, curParam) 
         if (title == "Fuels") {
             const initPlotly = async () => {
                 const { Plotly } = await import('plotly.js-dist')
-                const xArray = columns;
+            }
+        initPlotly();
+        const xArray = columns;
                 const yArray = [Object.values(row)];
                 const data = [{
                     x: xArray,
@@ -223,8 +225,6 @@ let fillTable = function(energyData, columns, title, res, paramsList, curParam) 
                 let plot = Plotly.newPlot("plot", data, layout);
                 const plotHTML = Plotly.io.to_html(plot);
                 response = response.replace("$$DATA_IMG$$", plotHTML)
-            }
-        initPlotly();
         }
 
         let curIndex = paramsList.indexOf(curParam)
