@@ -213,7 +213,7 @@ let fillTable = function(energyData, columns, title, res, paramsList, curParam) 
             }
         initPlotly();
         const xArray = columns;
-                const yArray = [Object.values(row)];
+                const yArray = [Object.values(energyData[0])];
                 const data = [{
                     x: xArray,
                     y: yArray,
