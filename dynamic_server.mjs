@@ -188,7 +188,12 @@ let fillTable = function(energyData, columns, title, res, paramsList, curParam) 
 
         columns.forEach((column) => {
             tableHeader += `<th>${column}</th> \n`
-            xArray += "'" + column + "'"
+            if (xArray != []){
+                xArray += ", '" + column + "'"
+            }
+            else {
+                xArray += "'" + column + "'"
+            }
         })
         tableHeader += "</tr> \n"
 
