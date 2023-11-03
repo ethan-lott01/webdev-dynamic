@@ -206,7 +206,7 @@ let fillTable = function(energyData, columns, title, res, paramsList, curParam) 
         let response = data.replace('$$DATA_TITLE$$', title)
         response = response.replace('$$DATA_TABLE$$', table)
 
-        let plotlyPlot = `Plotly.plot('Chart', [{x: ${columns} y: [${Object.values(energyData[0])}], type: 'bar'}]);`
+        let plotlyPlot = `Plotly.plot('Chart', [{x: ${columns}, y: [${Object.values(energyData[0])}], type: 'bar'}]);`
         let plotylScript = `<div id="Chart"></div> <script>${plotlyPlot}</script>`
 
         response = response.replace("$$DATA_IMG$$", plotylScript)
