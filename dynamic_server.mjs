@@ -105,8 +105,6 @@ app.get('/test/', (req, res) => {
 app.get('/prices/:price', (req, res) => {
     const price = req.params.price;
     const prices = price.split("_")
-    const minRange = parseInt(prices[0])
-    const maxRange = parseInt(prices[1])
 
     const URL_PARAMS = ['0_10', '10_20', '20_30', '30_40', '40_50', '50_60', '60_70', '70_80', '80_90', '90_100', '100_110', '110_120']
 
@@ -114,31 +112,11 @@ app.get('/prices/:price', (req, res) => {
     "Geothermal", "Hydro Pumped Storage Consumption", "Hydro Run of River and Poundage", "Hydro Water Resevoir", "Marine", 
     "Nuclear, Other, Other_Renewable, Solar, Waste, Wind Offsh0re, Wind Onshore, Actual Price"]
 
-    const query = `SELECT ${COLUMNS} FROM energy WHERE price_actual > ? AND price_actual < ?;`;
-    p1 = dbSelect(query, [prices[0], prices[1]]);
-    p2 = fs.readFile(path.join(template, 'temp.html'), 'utf-8');
-    Promise.all([p1, p2]).then((results) => {
-        //Need to update this block to correctly call for data sections
-        let energyType = results[0];
-        let response = results[1].replace('$$DATA_TITLE$$', "Price");
-        let table_body = '';
-        energyType.forEach((energy) => {
-            let table_row = '<tr>';
-            table_row += '<td>' + energy + '</td>';
-            table_row += '<td>' + energy.name + '</td>';
-            table_row += '<td>' + cereal.calories + '</td>';
-            table_row += '<td>' + cereal.fat + '</td>';
-            table_row += '<td>' + cereal.protein + '</td>';
-            table_row += '<td>' + cereal.carbohydrates + '</td>';
-            table_row += '</tr>\n';
-            table_body += table_row;
-        });  
-    }).then((successResult) => {
-        response = response.replace('$$DATA_TABLE$$', table_body);
-        res.status(200).type('html').send(response);
-    }).catch((err) => {
-        console.log(err);
-    });
+    const query = `SELECT ${COLUMNS_NONAVG} FROM energy WHERE price_actual > ? AND price_actual < ?;`;
+    let p1 = dbSelect(query, [prices[0], prices[1]]);
+    p1.then((data, err) => {
+        fillTable(data, COLUMN_NAMES, "Time", res)
+    })
 });
 
 app.get('/fuels/:fuel', (req, res) => {
@@ -167,18 +145,10 @@ app.get('/fuels/:fuel', (req, res) => {
     console.log(fuel, fuelMap.get(fuel))
 //let result = dbSelect(query, [])
 
-    p1 = dbSelect(query, []);
-    p2 = fs.readFile(path.join(template, 'temp.html'), 'utf-8');
-    Promise.all([p1, p2]).then((results) => {
-        //Need to update this block to correctly call for data sections
-        let energyMap = results[0];
-        let response = results[1].replace('$$DATA_TITLE$$', "Fuel");
-    }).then((successResult) => {
-        response = response.replace('$$DATA_TABLE$$', fuelMap);
-        res.status(200).type('html').send(response);
-    }).catch((err) => {
-        console.log(err);
-    });
+    let p1 = dbSelect(query, []);
+    p1.then((data, err) => {
+        fillTable(data, COLUMN_NAMES.get(fuel), "Time", res)
+    })
 });
 
 app.get('/time/:hr', (req, res) => {
@@ -190,53 +160,19 @@ app.get('/time/:hr', (req, res) => {
     "16:00:00", "17:00:00", "18:00:00", "19:00:00", "20:00:00", "21:00:00", 
     "22:00:00", "23:00:00"]
 
-    const URL_PARAMS = ["Biomass", "Brown Coal Lignite", "Coal Derived Gas", "Gas", "Hard Coal", "Oil", "Oil Shale", "Peat", 
+    const COLUMN_NAMES = ["Biomass", "Brown Coal Lignite", "Coal Derived Gas", "Gas", "Hard Coal", "Oil", "Oil Shale", "Peat", 
     "Geothermal", "Hydro Pumped Storage Consumption", "Hydro Run of River and Poundage", "Hydro Water Resevoir", "Marine", 
     "Nuclear", "Other", "Other_Renewable", "Solar", "Waste", "Wind Offshore", "Wind Onshore", "Actual Price"]
 
     const query = `SELECT ${COLUMNS_NONAVG} FROM energy WHERE Time = ?;`
 
-    //let result = dbSelect(query, hour)
 
     let p1 = dbSelect(query, hour);
-    let p2 = openTemplate();
-    // let p2 = fs.readFile(path.join(template, 'temp.html'), 'utf-8');
-    // Promise.all([p1]).then((results) => {
-    //     console.log(results.)
-    // })
-
-    // Promise.all([p1, p2]).then((results) => {
-
-    // })
 
     p1.then((data, err) => {
-
-        fillTable(data, URL_PARAMS, "Time", res)
-
+        fillTable(data, COLUMN_NAMES, "Time", res)
     }
     )
-    // Promise.all([p1, p2]).then((results) => {
-    //     //Need to update this block to correctly call for data sections
-    //     let energyTime = results[0];
-    //     let response = results[1].replace('$$DATA_TITLE$$', "Time");
-    //     let table_body = '';
-    //     energyTime.forEach((energy) => {
-    //         let table_row = '<tr>';
-    //         table_row += '<td>' + energy + '</td>';
-    //         table_row += '<td>' + energy.name + '</td>';
-    //         table_row += '<td>' + cereal.calories + '</td>';
-    //         table_row += '<td>' + cereal.fat + '</td>';
-    //         table_row += '<td>' + cereal.protein + '</td>';
-    //         table_row += '<td>' + cereal.carbohydrates + '</td>';
-    //         table_row += '</tr>\n';
-    //         table_body += table_row;
-    //     });  
-    // }).then((successResult) => {
-    //     response = response.replace('$$DATA_TABLE$$', table_body);
-    //     res.status(200).type('html').send(response);
-    // }).catch((err) => {
-    //     console.log(err);
-    // });
 })
 
 let fillTable = function(energyData, columns, title, res) {
