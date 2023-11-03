@@ -19,6 +19,7 @@ th, td {
     border: 0.15rem solid black;
     border-radius: 0.5rem;
 }
-.table-scroll{
-    transform: rotateX(180deg);
+table{
+    height: 50rem;
+    overflow-y: scroll;
 }
